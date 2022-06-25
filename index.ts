@@ -8,7 +8,19 @@ const appDiv: HTMLElement = document.getElementById('app');
 const ceo: IEmployee = {
   name: 'Mark Zuckerberg',
   uniqueId: 1,
-  subordinates: [],
+  subordinates: [
+    {
+      name: 'Sarah Donald',
+      uniqueId: 2,
+      subordinates: [
+        {
+          name: 'Cassandra',
+          uniqueId: 3,
+          subordinates: []
+        }
+      ]
+    }
+  ],
 };
 const app = new EmployeeOrgApp(ceo);
 
