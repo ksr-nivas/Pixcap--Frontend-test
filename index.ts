@@ -35,8 +35,10 @@ const ceo: IEmployee = {
 };
 const app = new EmployeeOrgApp(ceo);
 
+app.move(5, 3);
 console.log(app);
 
-app.move(5, 3);
+app.undo();
+console.log(app);
 
 appDiv.innerHTML = `<h3>${JSON.stringify(app)}</h3>`;

@@ -1,19 +1,28 @@
 export class EmployeeOrgApp implements IEmployeeOrgApp {
   ceo: IEmployee;
-  history: any[] = [];
+  private history: string[] = [];
+  private undoAction: any[] = [];
 
   constructor(ceo: IEmployee) {
     this.ceo = ceo;
   }
 
+  private getSuperVisor(employeeId: number, employee: IEmployee): IEmployee {
+    let subordinate: IEmployee;
+    for (let i = 0; i < employee.subordinates.length; i++) {
+      subordinate = employee.subordinates[i];
+      if (subordinate.uniqueId === employeeId) {
+        return employee;
+      } else if (subordinate.subordinates.length > 0 && this.getSuperVisor(employeeId, subordinate)) {
+        return employee;
+      }
+    }
+  }
+
   /**
    * returns an employee from the employee hierarchy and plucks if required
    */
-  private getEmployee(
-    employeeId: number,
-    subordinates: IEmployee[],
-    pluck: boolean = false
-  ): IEmployee {
+  private getEmployee(employeeId: number, subordinates: IEmployee[], pluck: boolean = false): IEmployee {
     if (this.ceo.uniqueId === employeeId) {
       return this.ceo;
     }
@@ -26,11 +35,7 @@ export class EmployeeOrgApp implements IEmployeeOrgApp {
         }
         return employee;
       } else if (employee.subordinates.length > 0) {
-        employeeFound = this.getEmployee(
-          employeeId,
-          employee.subordinates,
-          pluck
-        );
+        employeeFound = this.getEmployee(employeeId, employee.subordinates, pluck);
         if (employeeFound) {
           return employeeFound;
         }
@@ -47,31 +52,27 @@ export class EmployeeOrgApp implements IEmployeeOrgApp {
     if (employeeId === supervisorId || this.ceo.uniqueId === employeeId) {
       return;
     }
+    const currentSuperVisorId = this.getSuperVisor(employeeId, this.ceo).uniqueId;
     const employee = this.getEmployee(employeeId, this.ceo.subordinates, true);
-    const supervisor = this.getEmployee(supervisorId, this.ceo.subordinates);
-    supervisor.subordinates.push(employee);
-    this.history.push();
+    const newSupervisor = this.getEmployee(supervisorId, this.ceo.subordinates);
+    newSupervisor.subordinates.push(employee);
+    if (currentSuperVisorId) {
+      this.history.push(`${currentSuperVisorId}-${employee.uniqueId}-${supervisorId}`);
+    }
   }
 
   /**
    * undo the last operation
    */
-  undo() {}
+  undo() {
+    this.undoAction = this.history.pop().split('-');
+    this.move(Number(this.undoAction[1]), Number(this.undoAction[0]));
+  }
 
   /**
    * redo the last operation
    */
-  redo() {}
-}
-
-class MoveCommand {
-  employeeId: number;
-  supervisorId: number;
-
-  constructor(employeeId: number, supervisorId: number) {
-    this.employeeId = employeeId;
-    this.supervisorId = supervisorId;
+  redo() {
+    this.move(Number(this.undoAction[1]), Number(this.undoAction[2]));
   }
-
-  execute() {}
 }
