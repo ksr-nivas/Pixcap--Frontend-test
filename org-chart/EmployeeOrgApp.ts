@@ -7,19 +7,35 @@ export class EmployeeOrgApp implements IEmployeeOrgApp {
   }
 
   /**
-   * returns an employee from the employee hierarchy
+   * returns an employee from the employee hierarchy and plucks if required
    */
   private getEmployee(
     employeeId: number,
-    subordinates: IEmployee[]
+    subordinates: IEmployee[],
+    pluck: boolean = false
   ): IEmployee {
-    return subordinates.find((employee) => {
+    if (this.ceo.uniqueId === employeeId) {
+      return this.ceo;
+    }
+    let employee, employeeFound;
+    for (let e = 0; e < subordinates.length; e++) {
+      employee = subordinates[e];
       if (employee.uniqueId === employeeId) {
+        if (pluck) {
+          subordinates.splice(e, 1);
+        }
         return employee;
       } else if (employee.subordinates.length > 0) {
-        return this.getEmployee(employeeId, employee.subordinates);
+        employeeFound = this.getEmployee(
+          employeeId,
+          employee.subordinates,
+          pluck
+        );
+        if (employeeFound) {
+          return employeeFound;
+        }
       }
-    });
+    }
   }
 
   /**
@@ -31,8 +47,7 @@ export class EmployeeOrgApp implements IEmployeeOrgApp {
     if (employeeId === supervisorId || this.ceo.uniqueId === employeeId) {
       return;
     }
-
-    const employee = this.getEmployee(employeeId, this.ceo.subordinates);
+    const employee = this.getEmployee(employeeId, this.ceo.subordinates, true);
     const supervisor = this.getEmployee(supervisorId, this.ceo.subordinates);
     supervisor.subordinates.push(employee);
     this.history.push();
@@ -47,4 +62,16 @@ export class EmployeeOrgApp implements IEmployeeOrgApp {
    * redo the last operation
    */
   redo() {}
+}
+
+class MoveCommand {
+  employeeId: number;
+  supervisorId: number;
+
+  constructor(employeeId: number, supervisorId: number) {
+    this.employeeId = employeeId;
+    this.supervisorId = supervisorId;
+  }
+
+  execute() {}
 }

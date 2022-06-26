@@ -16,14 +16,27 @@ const ceo: IEmployee = {
         {
           name: 'Cassandra',
           uniqueId: 3,
-          subordinates: []
-        }
-      ]
-    }
+          subordinates: [],
+        },
+      ],
+    },
+    {
+      name: 'Tyler Simpson',
+      uniqueId: 4,
+      subordinates: [
+        {
+          name: 'Harry Tobs',
+          uniqueId: 5,
+          subordinates: [],
+        },
+      ],
+    },
   ],
 };
 const app = new EmployeeOrgApp(ceo);
 
 console.log(app);
+
+app.move(5, 3);
 
 appDiv.innerHTML = `<h3>${JSON.stringify(app)}</h3>`;
